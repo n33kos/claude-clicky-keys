@@ -130,15 +130,21 @@ fi
 
 mv "$TEMP_FILE" "$SETTINGS_FILE"
 
+# Load config to show correct sound file
+if [ -f "${SCRIPT_DIR}/.env" ]; then
+    source "${SCRIPT_DIR}/.env"
+fi
+CLICKY_SOUND_FILE="${CLICKY_SOUND_FILE:-clicking-keys.mp3}"
+
 echo ""
 echo "✅ Claude Clicky Keys installed successfully!"
 echo ""
 echo "📁 Hooks added to: $SETTINGS_FILE"
-echo "🔊 Sound file location: ${SCRIPT_DIR}/sounds/keyboard-typing.aiff"
+echo "🔊 Sound file location: ${SCRIPT_DIR}/sounds/${CLICKY_SOUND_FILE}"
 echo ""
 echo "⚠️  IMPORTANT: Restart Claude Code for hooks to take effect."
 echo ""
-echo "To add a custom typing sound, place an audio file at:"
-echo "   ${SCRIPT_DIR}/sounds/keyboard-typing.aiff"
+echo "To add a custom typing sound, place an audio file in the sounds/ folder"
+echo "   and update CLICKY_SOUND_FILE in .env"
 echo ""
 echo "To uninstall, run: ${SCRIPT_DIR}/uninstall.sh"
