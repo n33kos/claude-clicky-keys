@@ -46,7 +46,7 @@ Add the following to your Claude Code settings (`~/.claude/settings.json` or `.c
         "hooks": [
           {
             "type": "command",
-            "command": "/path/to/claude-clicky-keys/start-typing.sh"
+            "command": "/path/to/claude-clicky-keys/scripts/start-typing.sh"
           }
         ]
       }
@@ -57,7 +57,7 @@ Add the following to your Claude Code settings (`~/.claude/settings.json` or `.c
         "hooks": [
           {
             "type": "command",
-            "command": "/path/to/claude-clicky-keys/stop-typing.sh"
+            "command": "/path/to/claude-clicky-keys/scripts/stop-typing.sh"
           }
         ]
       }
@@ -68,7 +68,7 @@ Add the following to your Claude Code settings (`~/.claude/settings.json` or `.c
         "hooks": [
           {
             "type": "command",
-            "command": "/path/to/claude-clicky-keys/stop-typing.sh"
+            "command": "/path/to/claude-clicky-keys/scripts/stop-typing.sh"
           }
         ]
       }
@@ -127,18 +127,18 @@ Test the scripts manually:
 
 ```bash
 # Start the typing sound
-./start-typing.sh
+./scripts/start-typing.sh
 
 # Listen for a few seconds...
 
 # Stop the typing sound
-./stop-typing.sh
+./scripts/stop-typing.sh
 ```
 
 ## How It Works Technically
 
-- `start-typing.sh`: Starts a background process that loops the sound file. Stores PID in `/tmp/claude-clicky-keys.pid`. Reads config from `.env`.
-- `stop-typing.sh`: Reads the PID file and kills the background process.
+- `scripts/start-typing.sh`: Starts a background process that loops the sound file. Stores PID in `/tmp/claude-clicky-keys.pid`. Reads config from `.env`.
+- `scripts/stop-typing.sh`: Reads the PID file and kills the background process.
 - `.env`: Configuration for sound file, volume, timeout, and speed.
 - Hooks trigger on `Edit`, `Write`, and `Bash` tools by default.
 
@@ -146,17 +146,21 @@ Test the scripts manually:
 
 ### Sound doesn't play
 - Check that `afplay` works: `afplay /System/Library/Sounds/Tink.aiff`
-- Verify scripts are executable: `chmod +x *.sh`
+- Verify scripts are executable: `chmod +x scripts/*.sh`
 - Check the sound file exists in `sounds/`
 
 ### Sound doesn't stop
-- Run `./stop-typing.sh` manually
+- Run `./scripts/stop-typing.sh` manually
 - Check for orphaned processes: `ps aux | grep afplay`
 - The 60-second timeout will eventually stop it
 
 ### Hooks not working
 - Restart Claude Code (hooks load at session start)
 - Verify hooks are in settings: `cat ~/.claude/settings.json | jq .hooks`
+
+## Credits
+
+Default keyboard sound effect by [matthewvakaliuk73627](https://pixabay.com/users/matthewvakaliuk73627-48347364/) via [Pixabay](https://pixabay.com/sound-effects/film-special-effects-computer-keyboard-typing-290582/).
 
 ## License
 
