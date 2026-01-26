@@ -4,8 +4,9 @@
 # Configuration loaded from .env file
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ENV_FILE="${SCRIPT_DIR}/.env"
-SOUNDS_DIR="${SCRIPT_DIR}/sounds"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+ENV_FILE="${PROJECT_DIR}/.env"
+SOUNDS_DIR="${PROJECT_DIR}/sounds"
 PID_FILE="/tmp/claude-clicky-keys.pid"
 
 # Load configuration

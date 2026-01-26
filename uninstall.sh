@@ -99,12 +99,15 @@ if [ ! -f "$SETTINGS_FILE" ]; then
     exit 1
 fi
 
-# Remove hooks that contain "claude-clicky-keys" in the command
+# Remove only the specific command entries that contain "claude-clicky-keys"
+# while preserving other commands in the same hook object
 TEMP_FILE=$(mktemp)
 jq '
-  .hooks.PreToolUse = [.hooks.PreToolUse[]? | select(.hooks | all(.command | contains("claude-clicky-keys") | not))] |
-  .hooks.PostToolUse = [.hooks.PostToolUse[]? | select(.hooks | all(.command | contains("claude-clicky-keys") | not))] |
-  .hooks.PostToolUseFailure = [.hooks.PostToolUseFailure[]? | select(.hooks | all(.command | contains("claude-clicky-keys") | not))] |
+  # For each hook type, filter out claude-clicky-keys commands from within each hook object
+  # and only keep hook objects that still have remaining commands
+  .hooks.PreToolUse = [.hooks.PreToolUse[]? | .hooks = [.hooks[]? | select(.command | contains("claude-clicky-keys") | not)] | select(.hooks | length > 0)] |
+  .hooks.PostToolUse = [.hooks.PostToolUse[]? | .hooks = [.hooks[]? | select(.command | contains("claude-clicky-keys") | not)] | select(.hooks | length > 0)] |
+  .hooks.PostToolUseFailure = [.hooks.PostToolUseFailure[]? | .hooks = [.hooks[]? | select(.command | contains("claude-clicky-keys") | not)] | select(.hooks | length > 0)] |
   # Clean up empty arrays
   if .hooks.PreToolUse == [] then del(.hooks.PreToolUse) else . end |
   if .hooks.PostToolUse == [] then del(.hooks.PostToolUse) else . end |
@@ -123,4 +126,4 @@ if [ "$QUIET" != "true" ]; then
 fi
 
 # Also stop any running typing sounds
-"$SCRIPT_DIR/stop-typing.sh" 2>/dev/null || true
+"$SCRIPT_DIR/scripts/stop-typing.sh" 2>/dev/null || true

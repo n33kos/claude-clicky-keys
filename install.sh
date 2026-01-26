@@ -6,8 +6,8 @@ set -e
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-START_SCRIPT="${SCRIPT_DIR}/start-typing.sh"
-STOP_SCRIPT="${SCRIPT_DIR}/stop-typing.sh"
+START_SCRIPT="${SCRIPT_DIR}/scripts/start-typing.sh"
+STOP_SCRIPT="${SCRIPT_DIR}/scripts/stop-typing.sh"
 
 # Settings file locations
 USER_SETTINGS="$HOME/.claude/settings.json"
