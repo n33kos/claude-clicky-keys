@@ -39,9 +39,20 @@ fi
 # Atomic increment using mkdir lock
 while ! mkdir "$LOCK_DIR" 2>/dev/null; do sleep 0.01; done
 
-# Read and increment counter
+# Read counter
 COUNT=0
 [ -f "$COUNTER_FILE" ] && COUNT=$(cat "$COUNTER_FILE")
+
+# Check for stale counter (counter > 0 but no sound playing)
+# This handles the case where a previous session was killed mid-execution
+if [ "$COUNT" -gt 0 ]; then
+    if ! pgrep -f "afplay.*clicking-keys" > /dev/null 2>&1; then
+        # Counter is stale, reset it
+        COUNT=0
+    fi
+fi
+
+# Increment counter
 COUNT=$((COUNT + 1))
 echo "$COUNT" > "$COUNTER_FILE"
 
