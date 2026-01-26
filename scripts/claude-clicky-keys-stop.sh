@@ -1,37 +1,31 @@
 #!/bin/bash
 # Stop the looping typing sound
-# Uses marker files to handle parallel commands
+# Uses counter to handle parallel commands
 
-MARKER_DIR="/tmp/claude-clicky-keys-markers"
+COUNTER_FILE="/tmp/claude-clicky-keys.counter"
+LOCK_DIR="/tmp/claude-clicky-keys.lock"
 
-# Clean up stale markers (processes that no longer exist)
-if [ -d "$MARKER_DIR" ]; then
-    for marker in "$MARKER_DIR"/*; do
-        if [ -f "$marker" ]; then
-            PID=$(basename "$marker")
-            # Check if process still exists
-            if ! kill -0 "$PID" 2>/dev/null; then
-                rm -f "$marker"
-            fi
-        fi
-    done
-fi
+# Atomic decrement using mkdir lock
+while ! mkdir "$LOCK_DIR" 2>/dev/null; do sleep 0.01; done
 
-# Check if any markers remain (active commands)
-if [ -d "$MARKER_DIR" ]; then
-    REMAINING=$(find "$MARKER_DIR" -type f 2>/dev/null | wc -l)
-else
-    REMAINING=0
-fi
+# Read and decrement counter
+COUNT=0
+[ -f "$COUNTER_FILE" ] && COUNT=$(cat "$COUNTER_FILE")
+COUNT=$((COUNT - 1))
+[ "$COUNT" -lt 0 ] && COUNT=0
+echo "$COUNT" > "$COUNTER_FILE"
 
-# Only stop sound if no other commands are running
-if [ "$REMAINING" -eq 0 ]; then
+# Release lock
+rmdir "$LOCK_DIR"
+
+# Only stop sound if counter reached zero
+if [ "$COUNT" -eq 0 ]; then
     # Kill all instances of claude-clicky-keys-start.sh
     pkill -f "claude-clicky-keys-start.sh" 2>/dev/null || true
 
     # Kill all afplay processes playing clicking-keys.mp3
     pkill -f "afplay.*clicking-keys.mp3" 2>/dev/null || true
 
-    # Clean up marker directory
-    rm -rf "$MARKER_DIR"
+    # Clean up counter file
+    rm -f "$COUNTER_FILE"
 fi

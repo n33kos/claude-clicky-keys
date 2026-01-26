@@ -1,14 +1,14 @@
 #!/bin/bash
 # Start looping typing sound in background
-# Uses marker files to handle parallel commands
+# Uses atomic counter to handle parallel commands
 # Configuration loaded from .env file
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ENV_FILE="${PROJECT_DIR}/.env"
 SOUNDS_DIR="${PROJECT_DIR}/sounds"
-MARKER_DIR="/tmp/claude-clicky-keys-markers"
-MARKER_FILE="$MARKER_DIR/$$"
+COUNTER_FILE="/tmp/claude-clicky-keys.counter"
+LOCK_DIR="/tmp/claude-clicky-keys.lock"
 
 # Load configuration
 if [ -f "$ENV_FILE" ]; then
@@ -36,20 +36,24 @@ if [ ! -f "$SOUND_FILE" ]; then
     exit 1
 fi
 
-# Create marker directory if it doesn't exist
-mkdir -p "$MARKER_DIR"
+# Atomic increment using mkdir lock
+while ! mkdir "$LOCK_DIR" 2>/dev/null; do sleep 0.01; done
 
-# Create a marker file for this command
-touch "$MARKER_FILE"
+# Read and increment counter
+COUNT=0
+[ -f "$COUNTER_FILE" ] && COUNT=$(cat "$COUNTER_FILE")
+COUNT=$((COUNT + 1))
+echo "$COUNT" > "$COUNTER_FILE"
 
-# Check if sound is already playing
-if pgrep -f "afplay.*clicking-keys.mp3" > /dev/null 2>&1; then
-    # Sound is already playing, nothing to do
+# Release lock
+rmdir "$LOCK_DIR"
+
+# Only the first command (counter=1) should start the sound
+if [ "$COUNT" -gt 1 ]; then
     exit 0
 fi
 
 # Clean up any orphaned processes from previous sessions
-pkill -f "claude-clicky-keys-start.sh" 2>/dev/null || true
 pkill -f "afplay.*clicking-keys.mp3" 2>/dev/null || true
 
 # Build afplay arguments
