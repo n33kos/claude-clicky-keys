@@ -88,14 +88,38 @@ The uninstaller will:
 - Remove only the Claude Clicky Keys hooks
 - Preserve your other hooks and settings
 
-## Custom Sound
+## Configuration
 
-The plugin uses a fallback "Tink" sound by default. To use a custom typing sound:
+Configuration is managed via the `.env` file in the project root:
 
-1. Add an audio file to the `sounds/` folder named `keyboard-typing.aiff`
-2. Supported formats: AIFF, WAV, MP3 (anything `afplay` supports)
+```bash
+# Sound file to use (relative to sounds/ or absolute path)
+CLICKY_SOUND_FILE="clicking-keys.mp3"
 
-Recommended: Look for mechanical keyboard typing sounds on [freesound.org](https://freesound.org) or similar sites.
+# Volume (0.0 to 1.0)
+CLICKY_VOLUME="0.5"
+
+# Auto-stop timeout in seconds
+CLICKY_MAX_DURATION="60"
+
+# Playback speed (optional)
+CLICKY_SPEED=""
+```
+
+### Custom Sounds
+
+Add your own sound files to the `sounds/` folder and update `CLICKY_SOUND_FILE` in `.env`.
+Supported formats: MP3, AIFF, WAV (anything `afplay` supports).
+
+Find mechanical keyboard sounds on [freesound.org](https://freesound.org) or similar sites.
+
+### Changing Which Tools Trigger Sounds
+
+Modify the `matcher` pattern in the hooks:
+- `"Edit|Write"` - Only file editing
+- `"Bash"` - Only shell commands
+- `"Edit|Write|Bash|Read"` - Include file reading
+- `".*"` - All tools
 
 ## Testing
 
@@ -113,23 +137,10 @@ Test the scripts manually:
 
 ## How It Works Technically
 
-- `start-typing.sh`: Starts a background process that loops the sound file. Stores PID in `/tmp/claude-clicky-keys.pid`. Auto-stops after 60 seconds.
+- `start-typing.sh`: Starts a background process that loops the sound file. Stores PID in `/tmp/claude-clicky-keys.pid`. Reads config from `.env`.
 - `stop-typing.sh`: Reads the PID file and kills the background process.
+- `.env`: Configuration for sound file, volume, timeout, and speed.
 - Hooks trigger on `Edit`, `Write`, and `Bash` tools by default.
-
-## Configuration
-
-### Adjusting the timeout
-
-Edit `start-typing.sh` and change the `MAX_DURATION` variable (default: 60 seconds).
-
-### Changing which tools trigger sounds
-
-Modify the `matcher` pattern in the hooks:
-- `"Edit|Write"` - Only file editing
-- `"Bash"` - Only shell commands
-- `"Edit|Write|Bash|Read"` - Include file reading
-- `".*"` - All tools
 
 ## Troubleshooting
 
