@@ -50,6 +50,7 @@ if [ -n "$CLICKY_SPEED" ]; then
 fi
 
 # Start looping sound in background with auto-timeout
+# Redirect all output and fully detach from parent
 (
     START_TIME=$(date +%s)
     while true; do
@@ -63,7 +64,10 @@ fi
         fi
         afplay "${AFPLAY_ARGS[@]}" "$SOUND_FILE" 2>/dev/null
     done
-) &
+) > /dev/null 2>&1 &
 
 # Store PID
 echo $! > "$PID_FILE"
+
+# Detach from parent shell job control
+disown
