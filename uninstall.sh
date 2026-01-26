@@ -126,4 +126,4 @@ if [ "$QUIET" != "true" ]; then
 fi
 
 # Also stop any running typing sounds
-"$SCRIPT_DIR/scripts/stop-typing.sh" 2>/dev/null || true
+"$SCRIPT_DIR/scripts/claude-clicky-keys-stop.sh" 2>/dev/null || true

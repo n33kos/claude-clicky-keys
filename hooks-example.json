@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/claude-clicky-keys/scripts/start-typing.sh"
+            "command": "~/claude-clicky-keys/scripts/claude-clicky-keys-start.sh"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/claude-clicky-keys/scripts/stop-typing.sh"
+            "command": "~/claude-clicky-keys/scripts/claude-clicky-keys-stop.sh"
           }
         ]
       }
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/claude-clicky-keys/scripts/stop-typing.sh"
+            "command": "~/claude-clicky-keys/scripts/claude-clicky-keys-stop.sh"
           }
         ]
       }

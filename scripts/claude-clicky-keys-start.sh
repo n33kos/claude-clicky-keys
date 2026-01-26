@@ -1,13 +1,11 @@
 #!/bin/bash
 # Start looping typing sound in background
-# Stores PID in temp file so stop script can kill it
 # Configuration loaded from .env file
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ENV_FILE="${PROJECT_DIR}/.env"
 SOUNDS_DIR="${PROJECT_DIR}/sounds"
-PID_FILE="/tmp/claude-clicky-keys.pid"
 
 # Load configuration
 if [ -f "$ENV_FILE" ]; then
@@ -35,13 +33,10 @@ if [ ! -f "$SOUND_FILE" ]; then
     exit 1
 fi
 
-# Check if already running
-if [ -f "$PID_FILE" ]; then
-    if kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
-        # Already running, exit silently
-        exit 0
-    fi
-fi
+# Kill any existing instances to prevent stacking
+pkill -f "claude-clicky-keys-start.sh" 2>/dev/null || true
+# Also kill any orphaned afplay processes playing our sound file
+pkill -f "afplay.*clicking-keys.mp3" 2>/dev/null || true
 
 # Build afplay arguments
 AFPLAY_ARGS=(-v "$CLICKY_VOLUME")
@@ -58,16 +53,11 @@ fi
         CURRENT_TIME=$(date +%s)
         ELAPSED=$((CURRENT_TIME - START_TIME))
         if [ "$ELAPSED" -ge "$CLICKY_MAX_DURATION" ]; then
-            # Cleanup and exit
-            rm -f "$PID_FILE"
             exit 0
         fi
         afplay "${AFPLAY_ARGS[@]}" "$SOUND_FILE" 2>/dev/null
     done
 ) > /dev/null 2>&1 &
-
-# Store PID
-echo $! > "$PID_FILE"
 
 # Detach from parent shell job control
 disown

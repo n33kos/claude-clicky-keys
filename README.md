@@ -46,7 +46,7 @@ Add the following to your Claude Code settings (`~/.claude/settings.json` or `.c
         "hooks": [
           {
             "type": "command",
-            "command": "/path/to/claude-clicky-keys/scripts/start-typing.sh"
+            "command": "/path/to/claude-clicky-keys/scripts/claude-clicky-keys-start.sh"
           }
         ]
       }
@@ -57,7 +57,7 @@ Add the following to your Claude Code settings (`~/.claude/settings.json` or `.c
         "hooks": [
           {
             "type": "command",
-            "command": "/path/to/claude-clicky-keys/scripts/stop-typing.sh"
+            "command": "/path/to/claude-clicky-keys/scripts/claude-clicky-keys-stop.sh"
           }
         ]
       }
@@ -68,7 +68,7 @@ Add the following to your Claude Code settings (`~/.claude/settings.json` or `.c
         "hooks": [
           {
             "type": "command",
-            "command": "/path/to/claude-clicky-keys/scripts/stop-typing.sh"
+            "command": "/path/to/claude-clicky-keys/scripts/claude-clicky-keys-stop.sh"
           }
         ]
       }
@@ -127,18 +127,18 @@ Test the scripts manually:
 
 ```bash
 # Start the typing sound
-./scripts/start-typing.sh
+./scripts/claude-clicky-keys-start.sh
 
 # Listen for a few seconds...
 
 # Stop the typing sound
-./scripts/stop-typing.sh
+./scripts/claude-clicky-keys-stop.sh
 ```
 
 ## How It Works Technically
 
-- `scripts/start-typing.sh`: Starts a background process that loops the sound file. Stores PID in `/tmp/claude-clicky-keys.pid`. Reads config from `.env`.
-- `scripts/stop-typing.sh`: Reads the PID file and kills the background process.
+- `scripts/claude-clicky-keys-start.sh`: Starts a background process that loops the sound file. Kills any existing instances to prevent stacking. Reads config from `.env`.
+- `scripts/claude-clicky-keys-stop.sh`: Kills all typing sound processes using process name matching.
 - `.env`: Configuration for sound file, volume, timeout, and speed.
 - Hooks trigger on `Edit`, `Write`, and `Bash` tools by default.
 
@@ -150,7 +150,7 @@ Test the scripts manually:
 - Check the sound file exists in `sounds/`
 
 ### Sound doesn't stop
-- Run `./scripts/stop-typing.sh` manually
+- Run `./scripts/claude-clicky-keys-stop.sh` manually
 - Check for orphaned processes: `ps aux | grep afplay`
 - The 60-second timeout will eventually stop it
 
