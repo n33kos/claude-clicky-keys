@@ -1,11 +1,14 @@
 #!/bin/bash
 # Start looping typing sound in background
+# Uses marker files to handle parallel commands
 # Configuration loaded from .env file
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ENV_FILE="${PROJECT_DIR}/.env"
 SOUNDS_DIR="${PROJECT_DIR}/sounds"
+MARKER_DIR="/tmp/claude-clicky-keys-markers"
+MARKER_FILE="$MARKER_DIR/$$"
 
 # Load configuration
 if [ -f "$ENV_FILE" ]; then
@@ -33,9 +36,20 @@ if [ ! -f "$SOUND_FILE" ]; then
     exit 1
 fi
 
-# Kill any existing instances to prevent stacking
+# Create marker directory if it doesn't exist
+mkdir -p "$MARKER_DIR"
+
+# Create a marker file for this command
+touch "$MARKER_FILE"
+
+# Check if sound is already playing
+if pgrep -f "afplay.*clicking-keys.mp3" > /dev/null 2>&1; then
+    # Sound is already playing, nothing to do
+    exit 0
+fi
+
+# Clean up any orphaned processes from previous sessions
 pkill -f "claude-clicky-keys-start.sh" 2>/dev/null || true
-# Also kill any orphaned afplay processes playing our sound file
 pkill -f "afplay.*clicking-keys.mp3" 2>/dev/null || true
 
 # Build afplay arguments
