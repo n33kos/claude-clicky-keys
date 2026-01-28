@@ -27,14 +27,14 @@ To add more tools, edit `~/.claude/clicky-keys.env` and modify `CLICKY_TRIGGERS`
 
 ```bash
 # Add the plugin from this repository
-claude plugin add github:nicholassuski/claude-clicky-keys
+claude plugin add github:n33kos/claude-clicky-keys
 ```
 
 ### For Development/Testing
 
 ```bash
 # Clone the repository
-git clone https://github.com/nicholassuski/claude-clicky-keys.git
+git clone https://github.com/n33kos/claude-clicky-keys.git
 
 # Test with Claude
 claude --plugin-dir ./claude-clicky-keys
