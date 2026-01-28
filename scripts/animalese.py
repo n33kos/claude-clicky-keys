@@ -118,7 +118,7 @@ def main():
         length = int(os.environ.get('CLICKY_ANIMALESE_LENGTH', '40'))
     except ValueError:
         length = 40
-    length = max(10, min(200, length))
+    length = max(5, min(200, length))
 
     # Load library
     if not os.path.exists(library_path):

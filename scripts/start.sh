@@ -51,7 +51,11 @@ fi
 CLICKY_SOUND_MODE="${CLICKY_SOUND_MODE:-clicking}"
 CLICKY_SOUND_FILE="${CLICKY_SOUND_FILE:-clicking-keys.mp3}"
 CLICKY_VOLUME="${CLICKY_VOLUME:-0.5}"
-CLICKY_MAX_DURATION="${CLICKY_MAX_DURATION:-30}"
+if [ "$CLICKY_SOUND_MODE" = "animalese" ]; then
+    CLICKY_MAX_DURATION="${CLICKY_MAX_DURATION:-15}"
+else
+    CLICKY_MAX_DURATION="${CLICKY_MAX_DURATION:-30}"
+fi
 
 # Resolve CLICKY_SOUND_FILE early (needed for stale counter detection via pgrep)
 if [ "$CLICKY_SOUND_MODE" = "animalese" ]; then
@@ -102,7 +106,7 @@ if [ "$CLICKY_SOUND_MODE" = "animalese" ]; then
     # Generate fresh animalese babble via Python (only runs for first caller)
     GENERATED_WAV="${TMP_DIR}/animalese-generated.wav"
     export CLICKY_ANIMALESE_PITCH="${CLICKY_ANIMALESE_PITCH:-1.0}"
-    export CLICKY_ANIMALESE_LENGTH="${CLICKY_ANIMALESE_LENGTH:-40}"
+    export CLICKY_ANIMALESE_LENGTH="${CLICKY_ANIMALESE_LENGTH:-20}"
     export CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR"
     if python3 "${SCRIPT_DIR}/animalese.py" "$GENERATED_WAV" > /dev/null 2>&1; then
         SOUND_FILE="$GENERATED_WAV"
