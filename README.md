@@ -18,7 +18,8 @@ To add more tools, edit `~/.claude/clicky-keys.env` and modify `CLICKY_TRIGGERS`
 
 ## Requirements
 
-- macOS (uses `afplay` for audio playback)
+- **macOS** — uses `afplay` (built-in, no extra install needed)
+- **Linux** — uses one of: `paplay` (PulseAudio/PipeWire), `aplay` (ALSA), `mpv`, or `ffplay` (FFmpeg)
 - Claude Code with plugin support
 
 ## Installation
@@ -57,6 +58,10 @@ Or manually edit `~/.claude/clicky-keys.env`:
 # Sound file (relative to plugin sounds/ or absolute path)
 CLICKY_SOUND_FILE="clicking-keys.mp3"
 
+# Audio player override (auto-detected if not set)
+# macOS: afplay | Linux: mpv, ffplay, paplay, aplay
+# CLICKY_PLAYER=""
+
 # Volume (0.0 to 1.0)
 CLICKY_VOLUME="0.5"
 
@@ -80,7 +85,11 @@ CLICKY_MUTED="false"
 ### Custom Sounds
 
 Add your own sound files to the `sounds/` folder and update `CLICKY_SOUND_FILE` in your config.
-Supported formats: MP3, AIFF, WAV (anything `afplay` supports).
+
+Supported formats depend on your audio player:
+- **macOS (`afplay`):** MP3, AIFF, WAV, AAC, M4A
+- **Linux (`paplay`):** WAV, OGG, FLAC (MP3 works on most PipeWire setups)
+- **Linux (`mpv`/`ffplay`):** MP3, WAV, OGG, FLAC, and most other formats
 
 Find mechanical keyboard sounds on [freesound.org](https://freesound.org) or similar sites.
 
@@ -112,15 +121,17 @@ SOUND_FILE=./sounds/clicking-keys.mp3 ./scripts/play.sh   # outputs PID
 
 ### Sound doesn't play
 
-- Check that `afplay` works: `afplay /System/Library/Sounds/Tink.aiff`
+- **macOS:** Check that `afplay` works: `afplay /System/Library/Sounds/Tink.aiff`
+- **Linux:** Check which player is available: `which paplay mpv ffplay aplay`
+  - Install one if needed: `sudo apt install pulseaudio-utils` (Debian/Ubuntu) or `sudo dnf install mpv` (Fedora)
 - Verify scripts are executable: `chmod +x scripts/*.sh`
 - Run `/clicky-keys:setup` to configure settings
 
 ### Sound doesn't stop
 
 - Run `./scripts/kill.sh` manually to force stop
-- Check for orphaned processes: `ps aux | grep afplay`
-- Kill directly if needed: `pkill -f "afplay.*clicking-keys"`
+- Check for orphaned processes: `ps aux | grep -E "afplay|paplay|aplay|mpv|ffplay"`
+- Kill directly if needed: `pkill -f "clicking-keys"`
 - The auto-timeout (default 60 seconds) will eventually stop it
 
 ### Cleanup temp files

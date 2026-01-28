@@ -2,9 +2,6 @@
 # Hook wrapper: Parse stdin, manage counter/locks, start sound
 # All complexity lives here - play.sh is pure audio control
 
-# macOS only
-[[ "$(uname)" != "Darwin" ]] && exit 0
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Plugin root from env or derive from script location
@@ -77,7 +74,14 @@ COUNT=0
 
 # Check for stale counter (counter > 0 but no sound playing)
 if [ "$COUNT" -gt 0 ]; then
-    if ! pgrep -f "afplay.*${CLICKY_SOUND_FILE}" > /dev/null 2>&1; then
+    STALE=true
+    for PLAYER in afplay paplay aplay mpv ffplay; do
+        if pgrep -f "${PLAYER}.*${CLICKY_SOUND_FILE}" > /dev/null 2>&1; then
+            STALE=false
+            break
+        fi
+    done
+    if [ "$STALE" = true ]; then
         COUNT=0
     fi
 fi
@@ -94,12 +98,15 @@ if [ "$COUNT" -gt 1 ]; then
 fi
 
 # Clean up any orphaned processes
-pkill -f "afplay.*${CLICKY_SOUND_FILE}" 2>/dev/null || true
+for PLAYER in afplay paplay aplay mpv ffplay; do
+    pkill -f "${PLAYER}.*${CLICKY_SOUND_FILE}" 2>/dev/null || true
+done
 
 # === Start Sound ===
 
 # Export config for play.sh
 export SOUND_FILE
+export CLICKY_PLAYER
 export CLICKY_VOLUME
 export CLICKY_SPEED
 export CLICKY_MAX_DURATION
