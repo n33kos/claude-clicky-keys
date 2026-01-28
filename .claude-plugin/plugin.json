@@ -1,6 +1,6 @@
 {
   "name": "clicky-keys",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Audio feedback for Claude Code - hear keyboard typing sounds while Claude is working",
   "author": { "name": "Nicholas Suski" },
   "commands": "./commands"

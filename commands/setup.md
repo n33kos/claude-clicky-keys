@@ -22,6 +22,9 @@ Configure the clicky-keys plugin settings interactively.
 
 3. Ask the user to configure their preferences using AskUserQuestion. Ask all questions in a single AskUserQuestion call with multiple questions:
 
+   **Sound Mode**:
+   - Options: "Clicking Keys (Recommended)" - classic keyboard typing sounds, "Animalese" - Animal Crossing-style babble speech sounds
+
    **Volume** (0.0 to 1.0):
    - Options: "0.1 (Quiet)", "0.3 (Low)", "0.5 (Medium - Recommended)", "0.7 (Loud)"
 
@@ -34,11 +37,21 @@ Configure the clicky-keys plugin settings interactively.
    **Auto-stop Duration** (safety timeout in seconds):
    - Options: "30 seconds", "60 seconds (Recommended)", "120 seconds", "300 seconds"
 
-4. Write the configuration to `~/.claude/clicky-keys.env` with this format:
+4. If the user selected "Animalese" mode, ask a follow-up question:
+
+   **Animalese Voice** (pitch preset):
+   - Options: "Villager (Normal - Recommended)" - standard Animal Crossing villager voice (pitch 1.0), "Grumpy (Low)" - deep, grumpy villager voice (pitch 0.5), "Isabelle (High)" - high-pitched cheerful voice (pitch 1.5)
+
+   Also check that `python3` is available by running `python3 --version`. If not available, warn the user that animalese mode requires Python 3 and fall back to clicking mode.
+
+5. Write the configuration to `~/.claude/clicky-keys.env` with this format:
 
 ```bash
 # Clicky Keys Configuration
-# Sound file (relative to plugin sounds/ or absolute path)
+# Sound mode: clicking (keyboard sounds) or animalese (Animal Crossing babble)
+CLICKY_SOUND_MODE="<clicking_or_animalese>"
+
+# Sound file (relative to plugin sounds/ or absolute path) - used in clicking mode
 CLICKY_SOUND_FILE="clicking-keys.mp3"
 
 # Audio player override (auto-detected if not set)
@@ -63,14 +76,20 @@ CLICKY_TRIGGERS="<selected_triggers_comma_separated>"
 
 # Mute sounds (true/false) - toggle with /clicky-keys:mute
 CLICKY_MUTED="false"
+
+# Animalese settings (only used when CLICKY_SOUND_MODE=animalese)
+# Pitch: 0.5 = Grumpy (low), 1.0 = Villager (normal), 1.5 = Isabelle (high)
+CLICKY_ANIMALESE_PITCH="<selected_pitch>"
+# Number of syllables per generated clip (more = longer before loop)
+CLICKY_ANIMALESE_LENGTH="40"
 ```
 
-5. Ensure the `~/.claude` directory exists before writing the file.
+6. Ensure the `~/.claude` directory exists before writing the file.
 
-6. Offer to test the sound by running a simple bash command - the hooks will trigger automatically:
+7. Offer to test the sound by running a simple bash command - the hooks will trigger automatically:
    - `sleep 2`
-   - If you hear typing sounds during the sleep, the setup is working correctly
+   - If you hear sounds during the sleep, the setup is working correctly
 
-7. Confirm the setup is complete and remind the user:
+8. Confirm the setup is complete and remind the user:
    - Sound will play when Claude uses the selected tools
    - Use `/clicky-keys:mute` to toggle sounds on/off mid-session

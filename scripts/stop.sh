@@ -14,7 +14,12 @@ if [ -f "$CONFIG_FILE" ]; then
     source "$CONFIG_FILE"
 fi
 
-CLICKY_SOUND_FILE="${CLICKY_SOUND_FILE:-clicking-keys.mp3}"
+CLICKY_SOUND_MODE="${CLICKY_SOUND_MODE:-clicking}"
+if [ "$CLICKY_SOUND_MODE" = "animalese" ]; then
+    CLICKY_SOUND_FILE="animalese-generated.wav"
+else
+    CLICKY_SOUND_FILE="${CLICKY_SOUND_FILE:-clicking-keys.mp3}"
+fi
 CLICKY_STOP_DELAY="${CLICKY_STOP_DELAY:-0.4}"  # Delay before stopping (seconds)
 
 # Read hook input from stdin (with timeout to prevent blocking when called manually)

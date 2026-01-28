@@ -48,20 +48,18 @@ if [ -n "$TOOL_NAME" ]; then
 fi
 
 # Set defaults
+CLICKY_SOUND_MODE="${CLICKY_SOUND_MODE:-clicking}"
 CLICKY_SOUND_FILE="${CLICKY_SOUND_FILE:-clicking-keys.mp3}"
 CLICKY_VOLUME="${CLICKY_VOLUME:-0.5}"
-CLICKY_MAX_DURATION="${CLICKY_MAX_DURATION:-30}"
-
-# Resolve sound file path
-if [[ "$CLICKY_SOUND_FILE" = /* ]]; then
-    SOUND_FILE="$CLICKY_SOUND_FILE"
+if [ "$CLICKY_SOUND_MODE" = "animalese" ]; then
+    CLICKY_MAX_DURATION="${CLICKY_MAX_DURATION:-15}"
 else
-    SOUND_FILE="${SOUNDS_DIR}/${CLICKY_SOUND_FILE}"
+    CLICKY_MAX_DURATION="${CLICKY_MAX_DURATION:-30}"
 fi
 
-# Check if sound file exists
-if [ ! -f "$SOUND_FILE" ]; then
-    exit 1
+# Resolve CLICKY_SOUND_FILE early (needed for stale counter detection via pgrep)
+if [ "$CLICKY_SOUND_MODE" = "animalese" ]; then
+    CLICKY_SOUND_FILE="animalese-generated.wav"
 fi
 
 # === Counter/Lock Management ===
@@ -101,6 +99,35 @@ fi
 for PLAYER in afplay paplay aplay mpv ffplay; do
     pkill -f "${PLAYER}.*${CLICKY_SOUND_FILE}" 2>/dev/null || true
 done
+
+# === Resolve Sound File ===
+
+if [ "$CLICKY_SOUND_MODE" = "animalese" ]; then
+    # Generate fresh animalese babble via Python (only runs for first caller)
+    GENERATED_WAV="${TMP_DIR}/animalese-generated.wav"
+    export CLICKY_ANIMALESE_PITCH="${CLICKY_ANIMALESE_PITCH:-1.0}"
+    export CLICKY_ANIMALESE_LENGTH="${CLICKY_ANIMALESE_LENGTH:-20}"
+    export CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR"
+    if python3 "${SCRIPT_DIR}/animalese.py" "$GENERATED_WAV" > /dev/null 2>&1; then
+        SOUND_FILE="$GENERATED_WAV"
+    else
+        # Fallback to clicking mode if python3 unavailable or synthesis fails
+        SOUND_FILE="${SOUNDS_DIR}/clicking-keys.mp3"
+        CLICKY_SOUND_FILE="clicking-keys.mp3"
+    fi
+else
+    # Standard mode: use configured sound file
+    if [[ "$CLICKY_SOUND_FILE" = /* ]]; then
+        SOUND_FILE="$CLICKY_SOUND_FILE"
+    else
+        SOUND_FILE="${SOUNDS_DIR}/${CLICKY_SOUND_FILE}"
+    fi
+fi
+
+# Check if sound file exists
+if [ ! -f "$SOUND_FILE" ]; then
+    exit 1
+fi
 
 # === Start Sound ===
 
