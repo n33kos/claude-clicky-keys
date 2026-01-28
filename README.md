@@ -1,162 +1,132 @@
 # Claude Clicky Keys
 
-Audio feedback for Claude Code - hear keyboard typing sounds while Claude is working!
+Audio feedback for Claude Code - hear keyboard typing sounds while Claude is working.
 
 ## How It Works
 
 This plugin uses Claude Code's hooks system to:
-1. Start a looping typing sound when Claude begins editing files (Edit, Write, Bash tools)
+
+1. Start a looping typing sound when Claude uses configured tools
 2. Stop the sound when the tool completes
 3. Auto-stops after 60 seconds as a safety measure
+
+### Configurable Triggers
+
+You can choose which tools trigger the typing sound via `CLICKY_TRIGGERS` in your config file. The default is `Edit,Write,Bash`.
+
+To add more tools, edit `~/.claude/clicky-keys.env` and modify `CLICKY_TRIGGERS`. You may also need to add the tool to the matcher in `hooks/hooks.json` if it's not already included.
 
 ## Requirements
 
 - macOS (uses `afplay` for audio playback)
-- `jq` for JSON manipulation: `brew install jq`
-- Claude Code
+- Claude Code with plugin support
 
 ## Installation
 
-### Quick Install
+### From GitHub
 
 ```bash
-# Clone or download this repository
-cd ~/claude-clicky-keys
-
-# Run the installer
-./install.sh
+# Add the plugin from this repository
+claude plugin add github:nicholassuski/claude-clicky-keys
 ```
 
-The installer will:
-- Ask if you want user-level (all projects) or project-level hooks
-- Automatically detect the plugin location
-- Add the necessary hooks to your Claude settings
-- Check for existing installations
-
-### Manual Install
-
-Add the following to your Claude Code settings (`~/.claude/settings.json` or `.claude/settings.json`):
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/path/to/claude-clicky-keys/scripts/claude-clicky-keys-start.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/path/to/claude-clicky-keys/scripts/claude-clicky-keys-stop.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUseFailure": [
-      {
-        "matcher": "Edit|Write|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/path/to/claude-clicky-keys/scripts/claude-clicky-keys-stop.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-## Uninstallation
+### For Development/Testing
 
 ```bash
-./uninstall.sh
-```
+# Clone the repository
+git clone https://github.com/nicholassuski/claude-clicky-keys.git
 
-The uninstaller will:
-- Detect where hooks are installed
-- Remove only the Claude Clicky Keys hooks
-- Preserve your other hooks and settings
+# Test with Claude
+claude --plugin-dir ./claude-clicky-keys
+```
 
 ## Configuration
 
-Configuration is managed via the `.env` file in the project root:
+Run the setup command to configure volume, speed, and timeout:
+
+```
+/clicky-keys:setup
+```
+
+Or manually edit `~/.claude/clicky-keys.env`:
 
 ```bash
-# Sound file to use (relative to sounds/ or absolute path)
+# Sound file (relative to plugin sounds/ or absolute path)
 CLICKY_SOUND_FILE="clicking-keys.mp3"
 
 # Volume (0.0 to 1.0)
 CLICKY_VOLUME="0.5"
 
 # Auto-stop timeout in seconds
-CLICKY_MAX_DURATION="60"
+CLICKY_MAX_DURATION="30"
 
-# Playback speed (optional)
-CLICKY_SPEED=""
+# Playback speed (0.5 = half, 1.0 = normal, 2.0 = double)
+CLICKY_SPEED="1.0"
+
+# Delay before stopping sound in seconds (ensures fast operations are audible)
+CLICKY_STOP_DELAY="0.4"
+
+# Tools that trigger sound (comma-separated)
+# Available: Edit, MultiEdit, Write, Bash, Task
+CLICKY_TRIGGERS="Edit,MultiEdit,Write,Bash,Task"
+
+# Mute sounds (true/false) - toggle with /clicky-keys:mute
+CLICKY_MUTED="false"
 ```
 
 ### Custom Sounds
 
-Add your own sound files to the `sounds/` folder and update `CLICKY_SOUND_FILE` in `.env`.
+Add your own sound files to the `sounds/` folder and update `CLICKY_SOUND_FILE` in your config.
 Supported formats: MP3, AIFF, WAV (anything `afplay` supports).
 
 Find mechanical keyboard sounds on [freesound.org](https://freesound.org) or similar sites.
 
-### Changing Which Tools Trigger Sounds
+## Commands
 
-Modify the `matcher` pattern in the hooks:
-- `"Edit|Write"` - Only file editing
-- `"Bash"` - Only shell commands
-- `"Edit|Write|Bash|Read"` - Include file reading
-- `".*"` - All tools
+- `/clicky-keys:setup` - Interactive configuration wizard
+- `/clicky-keys:mute` - Toggle sounds on/off mid-session
+- `/clicky-keys:test` - Test the sound for a few seconds
 
 ## Testing
 
-Test the scripts manually:
+The easiest way to test is to run `/clicky-keys:test` which will run a simple bash command - the hooks trigger automatically.
+
+### Manual Testing (outside Claude)
+
+The scripts are split into hook wrappers and core audio scripts:
 
 ```bash
-# Start the typing sound
-./scripts/claude-clicky-keys-start.sh
+# Core scripts (pure audio control, need env vars):
+SOUND_FILE=./sounds/clicking-keys.mp3 ./scripts/play.sh   # outputs PID
+./scripts/kill.sh                                          # stops sound
 
-# Listen for a few seconds...
-
-# Stop the typing sound
-./scripts/claude-clicky-keys-stop.sh
+# Hook wrappers (handle stdin parsing, counters, locks):
+./scripts/start.sh   # called by hooks on tool start
+./scripts/stop.sh    # called by hooks on tool end
 ```
-
-## How It Works Technically
-
-- `scripts/claude-clicky-keys-start.sh`: Starts a background process that loops the sound file. Kills any existing instances to prevent stacking. Reads config from `.env`.
-- `scripts/claude-clicky-keys-stop.sh`: Kills all typing sound processes using process name matching.
-- `.env`: Configuration for sound file, volume, timeout, and speed.
-- Hooks trigger on `Edit`, `Write`, and `Bash` tools by default.
 
 ## Troubleshooting
 
 ### Sound doesn't play
+
 - Check that `afplay` works: `afplay /System/Library/Sounds/Tink.aiff`
 - Verify scripts are executable: `chmod +x scripts/*.sh`
-- Check the sound file exists in `sounds/`
+- Run `/clicky-keys:setup` to configure settings
 
 ### Sound doesn't stop
-- Run `./scripts/claude-clicky-keys-stop.sh` manually
-- Check for orphaned processes: `ps aux | grep afplay`
-- The 60-second timeout will eventually stop it
 
-### Hooks not working
-- Restart Claude Code (hooks load at session start)
-- Verify hooks are in settings: `cat ~/.claude/settings.json | jq .hooks`
+- Run `./scripts/kill.sh` manually to force stop
+- Check for orphaned processes: `ps aux | grep afplay`
+- Kill directly if needed: `pkill -f "afplay.*clicking-keys"`
+- The auto-timeout (default 60 seconds) will eventually stop it
+
+### Cleanup temp files
+
+All temporary files are stored in `/tmp/claude-clicky-keys/`. To clean up:
+
+```bash
+rm -rf /tmp/claude-clicky-keys
+```
 
 ## Credits
 
