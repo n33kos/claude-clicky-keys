@@ -2,9 +2,6 @@
 # Hook wrapper: Parse stdin, manage counter/locks, stop sound
 # All complexity lives here - kill.sh is pure audio control
 
-# macOS only
-[[ "$(uname)" != "Darwin" ]] && exit 0
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="${HOME}/.claude/clicky-keys.env"
 TMP_DIR="/tmp/claude-clicky-keys"

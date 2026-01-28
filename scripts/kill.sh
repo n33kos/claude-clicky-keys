@@ -3,9 +3,6 @@
 # Pure audio control - no counter/lock logic
 # Expects: PID as argument or CLICKY_SOUND_FILE env for pkill fallback
 
-# macOS only
-[[ "$(uname)" != "Darwin" ]] && exit 0
-
 PID="$1"
 CLICKY_SOUND_FILE="${CLICKY_SOUND_FILE:-clicking-keys.mp3}"
 
@@ -14,5 +11,7 @@ if [ -n "$PID" ]; then
     kill "$PID" 2>/dev/null || true
 fi
 
-# Always pkill as fallback/cleanup
-pkill -f "afplay.*${CLICKY_SOUND_FILE}" 2>/dev/null || true
+# Always pkill as fallback/cleanup — match any supported player
+for PLAYER in afplay paplay aplay mpv ffplay; do
+    pkill -f "${PLAYER}.*${CLICKY_SOUND_FILE}" 2>/dev/null || true
+done
