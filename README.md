@@ -26,8 +26,11 @@ To add more tools, edit `~/.claude/clicky-keys.env` and modify `CLICKY_TRIGGERS`
 ### From GitHub
 
 ```bash
+# Add the marketplace
+/plugin marketplace add n33kos/claude-plugins
+
 # Add the plugin from this repository
-claude plugin add github:n33kos/claude-clicky-keys
+/plugin install clicky-keys@n33kos
 ```
 
 ### For Development/Testing
